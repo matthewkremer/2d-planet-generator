@@ -25,19 +25,43 @@ function map(c, a1, a2, b1, b2){
 	return b1 + ((c-a1)/(a2-a1))*(b2-b1);
 }
 
-function setColor(data, x, y, w, r, g, b, a, pixelSize){
+/**
+ * @description Check if a pt is in, on or outside of a circle.
+ * @param {[float]} pt The point to test. An array of two floats - x and y coordinates.
+ * @param {[float]} center The circle center. An array of two floats - x and y coordinates.
+ * @param {float} r The circle radius.
+ * @returns {-1 | 0 | 1} -1 if the point is inside, 0 if it is on and 1 if it is outside the circle.
+ */
+ function ptInCircle(pt, center, r) {
+
+	// console.log("Point in Circle", pt, center, r);
+
+    const lhs = Math.pow(center[0] - pt[0], 2) + Math.pow(center[1] - pt[1], 2);
+    const rhs = Math.pow(r, 2);
+
+    return lhs < rhs ? true : (lhs === rhs ? true : false);
+}
+
+function setColor(data, x, y, w, r, g, b, a, pixelSize, circle, imagew){
 	pixelSize = pixelSize || 1;
+	circle = circle || false;
+	imagew = imagew || 500000000000000;
 	for(var xx = x; xx < x+pixelSize; xx++){
 		for(var yy = y; yy < y+pixelSize; yy++){
-			data[(xx + yy*w)*4] = r;
-			data[(xx + yy*w)*4 + 1] = g;
-			data[(xx + yy*w)*4 + 2] = b;
-			data[(xx + yy*w)*4 + 3] = a;
+			if (xx < imagew && xx > -1){
+				if (!circle || ptInCircle([xx-x, yy-y], [pixelSize/2, pixelSize/2], pixelSize/2)){
+					data[(xx + yy*w)*4] = r;
+					data[(xx + yy*w)*4 + 1] = g;
+					data[(xx + yy*w)*4 + 2] = b;
+					data[(xx + yy*w)*4 + 3] = a;
+				}
+			}
 		}
 	}
 }
 
 function generateRedTypePlanet(n, texture_data, x, y, heightmap_width, pixelSize){
+	// console.log("Red Type", n);
 	if(n < 150){
 		n = n < 110 ? 110 : n;	//So the earth is not too dark
 		setColor(texture_data, x, y, heightmap_width, n, Math.round(n*0.6), Math.round(n/2), n, pixelSize);
@@ -49,6 +73,7 @@ function generateRedTypePlanet(n, texture_data, x, y, heightmap_width, pixelSize
 }
 
 function generateEarthTypePlanet(n, texture_data, x, y, heightmap_width, pixelSize){
+	// console.log("Earth Type", n);
 	if(n < 140){
 		n = n < 70 ? 70 : n;	//So the water is not too dark
 		setColor(texture_data, x, y, heightmap_width, 0, 0, n, n, pixelSize);
@@ -60,12 +85,35 @@ function generateEarthTypePlanet(n, texture_data, x, y, heightmap_width, pixelSi
 }
 
 function generateGasTypePlanet(n, texture_data, x, y, heightmap_width, pixelSize){
+	// console.log("Blue Gas Type", n);
 	if(n < 210){
 		n = n < 120 ? 120 : n;	//So the gas is not too dark
 		setColor(texture_data, x, y, heightmap_width, Math.round(n/3), Math.round(n/2), n, n, pixelSize);
 	}
 	else
 		setColor(texture_data, x, y, heightmap_width, Math.round(n/3), Math.round(n*0.6), n, n, pixelSize);
+}
+
+function generatePurpleGasTypePlanet(n, texture_data, x, y, heightmap_width, pixelSize){
+	// console.log("Purple Gas Type", n);
+	if(n < 210){
+		n = n < 120 ? 120 : n;	//So the gas is not too dark
+		setColor(texture_data, x, y, heightmap_width, n, Math.round(n/2), n, n, pixelSize);
+	}
+	else
+		setColor(texture_data, x, y, heightmap_width, n, Math.round(n*0.6), n, n, pixelSize);
+}
+
+function generateRockTypePlanet(n, texture_data, x, y, heightmap_width, pixelSize){
+	// console.log("Rock Type", n);
+	if(n < 150){
+		n = n < 110 ? 110 : n;	//So the earth is not too dark
+		setColor(texture_data, x, y, heightmap_width, Math.round(n/1.7), Math.round(n/1.7), Math.round(n/1.7), n, pixelSize);
+	}
+	else if(n < 210)
+		setColor(texture_data, x, y, heightmap_width, Math.round(n/1.5), Math.round(n/1.5), Math.round(n/1.5), n, pixelSize);
+	else
+		setColor(texture_data, x, y, heightmap_width, Math.round(n/3), Math.round(n/3), Math.round(n/3), n, pixelSize);
 }
 
 //Link (in french)
@@ -90,17 +138,49 @@ RNG.prototype.unit = function(){
 	return this.seed / (this.m-1);
 }
 
+// Version 4.0
+const pSBC=(p,c0,c1,l)=>{
+    let r,g,b,P,f,t,h,i=parseInt,m=Math.round,a=typeof(c1)=="string";
+    if(typeof(p)!="number"||p<-1||p>1||typeof(c0)!="string"||(c0[0]!='r'&&c0[0]!='#')||(c1&&!a))return null;
+    if(!this.pSBCr)this.pSBCr=(d)=>{
+        let n=d.length,x={};
+        if(n>9){
+            [r,g,b,a]=d=d.split(","),n=d.length;
+            if(n<3||n>4)return null;
+            x.r=i(r[3]=="a"?r.slice(5):r.slice(4)),x.g=i(g),x.b=i(b),x.a=a?parseFloat(a):-1
+        }else{
+            if(n==8||n==6||n<4)return null;
+            if(n<6)d="#"+d[1]+d[1]+d[2]+d[2]+d[3]+d[3]+(n>4?d[4]+d[4]:"");
+            d=i(d.slice(1),16);
+            if(n==9||n==5)x.r=d>>24&255,x.g=d>>16&255,x.b=d>>8&255,x.a=m((d&255)/0.255)/1000;
+            else x.r=d>>16,x.g=d>>8&255,x.b=d&255,x.a=-1
+        }return x};
+    h=c0.length>9,h=a?c1.length>9?true:c1=="c"?!h:false:h,f=this.pSBCr(c0),P=p<0,t=c1&&c1!="c"?this.pSBCr(c1):P?{r:0,g:0,b:0,a:-1}:{r:255,g:255,b:255,a:-1},p=P?p*-1:p,P=1-p;
+    if(!f||!t)return null;
+    if(l)r=m(P*f.r+p*t.r),g=m(P*f.g+p*t.g),b=m(P*f.b+p*t.b);
+    else r=m((P*f.r**2+p*t.r**2)**0.5),g=m((P*f.g**2+p*t.g**2)**0.5),b=m((P*f.b**2+p*t.b**2)**0.5);
+    a=f.a,t=t.a,f=a>=0||t>=0,a=f?a<0?t:t<0?a:a*P+t*p:0;
+    if(h)return [r,g,b];
+    else return"#"+(4294967296+r*16777216+g*65536+b*256+(f?m(a*255):0)).toString(16).slice(1,f?undefined:-2)
+}
+
 
 var rng;
 
-var withAsteroids;
+var withAsteroids, withMoon;
 
-var asteroidColors = [[130, 72, 41], [96, 60, 39], [91, 73, 64]];
+var asteroidColors = [
+	[[130, 72, 41], [96, 60, 39], [91, 73, 64]],
+	[[187,161,207], [101,91,118], [209,205,229]],
+	[[48,84,191], [29,50,111], [70,104,203]]
+];
+
 var asteroids;
 var orbitRadius;
 var orbitAngle;
 var numAsteroids;
 var orbitInclinationAngle;
+var orbitAnglePerFrame;
 
 var heightmap_width = 700;
 var heightmap_height = 400;
@@ -113,7 +193,7 @@ var rotationMomentum = 0.0;
 
 var radius = 100;
 var planetType;
-var RED_TYPE = 0, EARTH_TYPE = 1, GAS_TYPE = 2;
+var RED_TYPE = 0, EARTH_TYPE = 1, GAS_TYPE = 2, PURPLE_GAS_TYPE = 3, ROCK_TYPE = 4;
 var noise;
 var imageData = ctx.createImageData(heightmap_width, heightmap_height);
 var texture_data = imageData.data;
@@ -124,7 +204,7 @@ generate(false);
 
 function randomSeed(){
 	//Size of the seed between 1 and 20 character
-	var n = Math.ceil(Math.random()*20);
+	var n = Math.ceil(Math.random()*40);
 	var seed = "";
 	
 	for(var i = 0; i < n; i++){
@@ -157,30 +237,53 @@ function generate(wait){
 	var seed = seedField.value;
 	rng = new RNG(seed);
 	pixelSize = parseInt(pixelSizeField.value) || 5;
+
+	// console.log(rng, rng.unit());
 	
 	withAsteroids = false;
-	if(rng.unit() < 0.5)
+	withMoon = false;
+	withAsteroidsCheck = rng.unit();
+	if(withAsteroidsCheck < 0.5)
 		withAsteroids = true;
+		orbitAnglePerFrame = Math.round(rng.unit()*5+1) / -100;
+	if (withAsteroidsCheck < 0.15)
+		withMoon = true;
 	
 	asteroids = [];
 	var orbitRadiusInner = rng.unit()*100 + 110;
 	var orbitRadiusOuter = orbitRadiusInner + 50;
 	var diffRadius = orbitRadiusOuter - orbitRadiusInner;
 	orbitAngle = 0.0;
-	numAsteroids = rng.unit()*200 + 75;
-	orbitInclinationAngle = -rng.unit()*Math.PI/10.0;
+	if (withMoon) {
+		numAsteroids = Math.round(rng.unit()*2)+1;
+	} else {	
+		numAsteroids = rng.unit()*200 + 75;
+	}
+	// orbitInclinationAngle = -rng.unit()*Math.PI/10.0;
+	orbitInclinationAngle = -rng.unit()*Math.PI/Math.round(5+rng.unit()*5);
 	
 	if(withAsteroids){
+		var asteroidColorSet = Math.round(rng.unit()*2);
 		for(var a = 0; a < numAsteroids; a++){
 			var angle = rng.unit()*Math.PI*2.0;
 			var rad = orbitRadiusInner + rng.unit()*diffRadius;
 			var x = rad*Math.cos(angle),
 				y = (rng.unit()*2.0-1.0) * 10.0,
 				z = rad*Math.sin(angle),
-				c = Math.round(rng.unit()*2),
+				c = Math.round(rng.unit()*2);
+			if (withMoon){
+				size = Math.round(rng.unit()*11+13);
+				console.log(size);
+			} else {
 				size = Math.round(rng.unit()*5+5);
-			
-			asteroids.push([x, y, z, angle, asteroidColors[c][0], asteroidColors[c][1], asteroidColors[c][2], size]);
+			}
+
+			// console.log("Asteroid", asteroidColorSet, c, asteroidColors);
+			if (!withMoon){
+				asteroids.push([x, y, z, angle, asteroidColors[asteroidColorSet][c][0], asteroidColors[asteroidColorSet][c][1], asteroidColors[asteroidColorSet][c][2], size]);
+			}else{
+				asteroids.push([x, y, z, angle, Math.round(rng.unit()*200)+55, Math.round(rng.unit()*200)+55, Math.round(rng.unit()*200)+55, size]);
+			}
 		}
 	}
 	
@@ -188,7 +291,7 @@ function generate(wait){
 	planetRotationDiff = rng.unit() * 0.03;
 	noise = new PerlinNoise(seed);
 	
-	planetType = Math.round(rng.unit()*2);
+	planetType = Math.round(rng.unit()*4);
 	
 	for(var x = 0; x < heightmap_width; x+=pixelSize){
 		for(var y = 0; y < heightmap_height; y+=pixelSize){
@@ -216,6 +319,10 @@ function generate(wait){
 				generateEarthTypePlanet(n, texture_data, x, y, heightmap_width, pixelSize);
 			else if(planetType === GAS_TYPE)
 				generateGasTypePlanet(n, texture_data, x, y, heightmap_width, pixelSize);
+			else if(planetType === PURPLE_GAS_TYPE)
+				generatePurpleGasTypePlanet(n, texture_data, x, y, heightmap_width, pixelSize);
+			else if(planetType === ROCK_TYPE)
+				generateRockTypePlanet(n, texture_data, x, y, heightmap_width, pixelSize);
 		}
 	}
 	
@@ -259,7 +366,8 @@ function animate(texture_data, radius){
 	}
 	
 	if(withAsteroids){
-		var orbitAnglePerFrame = -0.03;
+		// var orbitAnglePerFrame = -0.03;
+		// var orbitAnglePerFrame = -0.01;
 		var astXYZ = [];
 		for(var a = 0; a < asteroids.length; a++){
 			var asteroid = asteroids[a];
@@ -276,7 +384,7 @@ function animate(texture_data, radius){
 		
 		for(var a = 0; a < astXYZ.length; a+=3){
 			if(astXYZ[a+2] < 0){
-				setColor(data, astXYZ[a], astXYZ[a+1], 500, asteroids[a/3][4], asteroids[a/3][5], asteroids[a/3][6], 255, asteroids[a/3][7]);
+				setColor(data, astXYZ[a], astXYZ[a+1], 500, asteroids[a/3][4], asteroids[a/3][5], asteroids[a/3][6], 255, asteroids[a/3][7], withMoon, imageData.width);
 			}
 		}
 	}
@@ -289,7 +397,7 @@ function animate(texture_data, radius){
 	if(withAsteroids){
 		for(var a = 0; a < astXYZ.length; a+=3){
 			if(astXYZ[a+2] >= 0){
-				setColor(data, astXYZ[a], astXYZ[a+1], 500, asteroids[a/3][4], asteroids[a/3][5], asteroids[a/3][6], 255, asteroids[a/3][7]);
+				setColor(data, astXYZ[a], astXYZ[a+1], 500, asteroids[a/3][4], asteroids[a/3][5], asteroids[a/3][6], 255, asteroids[a/3][7], withMoon, imageData.width);
 			}
 		}
 	}
