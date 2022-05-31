@@ -180,6 +180,7 @@ function generateDesertTypePlanet(n, texture_data, x, y, heightmap_width, pixelS
 		setColor(texture_data, x, y, heightmap_width, n+10, Math.round(n/1.25) - 10, Math.round(n/2.25), n, pixelSize);
 }
 
+
 //Link (in french)
 //https://fr.wikipedia.org/wiki/G%C3%A9n%C3%A9rateur_congruentiel_lin%C3%A9aire#Exemples
 function RNG(seed){
