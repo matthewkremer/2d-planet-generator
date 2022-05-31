@@ -84,6 +84,18 @@ function generateEarthTypePlanet(n, texture_data, x, y, heightmap_width, pixelSi
 		setColor(texture_data, x, y, heightmap_width, n, n, n, n, pixelSize);
 }
 
+function generatePurpleWaterTypePlanet(n, texture_data, x, y, heightmap_width, pixelSize){
+	// console.log("Earth Type", n);
+	if(n < 140){
+		n = n < 70 ? 70 : n;	//So the water is not too dark
+		setColor(texture_data, x, y, heightmap_width, n, Math.round(n/5), n, n, pixelSize);
+	}
+	else if(n < 210)
+		setColor(texture_data, x, y, heightmap_width, 0, n, Math.round(n/1.5), n, pixelSize);
+	else
+		setColor(texture_data, x, y, heightmap_width, n, n, n, n, pixelSize);
+}
+
 function generateGasTypePlanet(n, texture_data, x, y, heightmap_width, pixelSize){
 	// console.log("Blue Gas Type", n);
 	if(n < 210){
@@ -113,7 +125,59 @@ function generateRockTypePlanet(n, texture_data, x, y, heightmap_width, pixelSiz
 	else if(n < 210)
 		setColor(texture_data, x, y, heightmap_width, Math.round(n/1.5), Math.round(n/1.5), Math.round(n/1.5), n, pixelSize);
 	else
+	// setColor(texture_data, x, y, heightmap_width, n, Math.round(n/2), Math.round(n/3), n, pixelSize);
 		setColor(texture_data, x, y, heightmap_width, Math.round(n/3), Math.round(n/3), Math.round(n/3), n, pixelSize);
+}
+
+function generateLavaTypePlanet(n, texture_data, x, y, heightmap_width, pixelSize){
+	// console.log("Rock Type", n);
+	if(n < 150){
+		n = n < 110 ? 110 : n;	//So the earth is not too dark
+		setColor(texture_data, x, y, heightmap_width, Math.round(n/2), Math.round(n/2), Math.round(n/2), n, pixelSize);
+	}
+	else if(n < 210)
+		setColor(texture_data, x, y, heightmap_width, n, Math.round(n/2.5), Math.round(n/3), n, pixelSize);
+	else
+		setColor(texture_data, x, y, heightmap_width, n+40, Math.round(n/4), Math.round(n/4), n, pixelSize);
+}
+
+function generateLava2TypePlanet(n, texture_data, x, y, heightmap_width, pixelSize){
+	// console.log("Rock Type", n);
+	if(n < 150){
+		n = n < 110 ? 110 : n;	//So the earth is not too dark
+		setColor(texture_data, x, y, heightmap_width, n+40, Math.round(n/4), Math.round(n/4), n, pixelSize);
+	}
+	else if(n < 210)
+	setColor(texture_data, x, y, heightmap_width, Math.round(n/3), Math.round(n/3), Math.round(n/3), n, pixelSize);
+		
+	else
+	// setColor(texture_data, x, y, heightmap_width, n, Math.round(n/2), Math.round(n/3), n, pixelSize);
+	setColor(texture_data, x, y, heightmap_width, Math.round(n/4), Math.round(n/4), Math.round(n/4), n, pixelSize);
+		
+}
+
+function generateForestTypePlanet(n, texture_data, x, y, heightmap_width, pixelSize){
+	// console.log("Earth Type", n);
+	if(n < 140){
+		n = n < 60 ? 60 : n;	//So the water is not too dark
+		setColor(texture_data, x, y, heightmap_width, 0, n, Math.round(n/1.75), n, pixelSize);
+	}
+	else if(n < 210)
+		setColor(texture_data, x, y, heightmap_width, 0, n - 10, Math.round(n/2), n, pixelSize);
+	else
+		setColor(texture_data, x, y, heightmap_width, 0, n - 10, Math.round(n/2.25), n, pixelSize);
+}
+
+function generateDesertTypePlanet(n, texture_data, x, y, heightmap_width, pixelSize){
+	// console.log("Earth Type", n);
+	if(n < 140){
+		n = n < 100 ? 100 : n;	//So the water is not too dark
+		setColor(texture_data, x, y, heightmap_width, n+30, Math.round(n/1.25), Math.round(n/2), n, pixelSize);
+	}
+	else if(n < 210)
+		setColor(texture_data, x, y, heightmap_width, n+20, Math.round(n/1.25) - 10, Math.round(n/3), n, pixelSize);
+	else
+		setColor(texture_data, x, y, heightmap_width, n+10, Math.round(n/1.25) - 10, Math.round(n/2.25), n, pixelSize);
 }
 
 //Link (in french)
@@ -175,6 +239,8 @@ var asteroidColors = [
 	[[48,84,191], [29,50,111], [70,104,203]]
 ];
 
+var asteroidColors2 = [];
+
 var asteroids;
 var orbitRadius;
 var orbitAngle;
@@ -193,7 +259,8 @@ var rotationMomentum = 0.0;
 
 var radius = 100;
 var planetType;
-var RED_TYPE = 0, EARTH_TYPE = 1, GAS_TYPE = 2, PURPLE_GAS_TYPE = 3, ROCK_TYPE = 4;
+var RED_TYPE = 0, EARTH_TYPE = 1, GAS_TYPE = 2, PURPLE_GAS_TYPE = 3, ROCK_TYPE = 4, LAVA_TYPE = 5, 
+LAVA_2_TYPE = 6, PURPLE_WATER_TYPE = 7, FOREST_TYPE = 8, DESERT_TYPE = 9;
 var noise;
 var imageData = ctx.createImageData(heightmap_width, heightmap_height);
 var texture_data = imageData.data;
@@ -264,6 +331,9 @@ function generate(wait){
 	
 	if(withAsteroids){
 		var asteroidColorSet = Math.round(rng.unit()*2);
+		asteroidColors2 = [[Math.round(rng.unit()*230)+25, Math.round(rng.unit()*230)+25, Math.round(rng.unit()*230)+25]]
+		asteroidColors2.push(pSBC(0.4, 'rgb('+asteroidColors2[0][0]+','+asteroidColors2[0][1]+','+asteroidColors2[0][2]+')'));
+		asteroidColors2.push(pSBC(-0.4, 'rgb('+asteroidColors2[0][0]+','+asteroidColors2[0][1]+','+asteroidColors2[0][2]+')'));
 		for(var a = 0; a < numAsteroids; a++){
 			var angle = rng.unit()*Math.PI*2.0;
 			var rad = orbitRadiusInner + rng.unit()*diffRadius;
@@ -280,7 +350,8 @@ function generate(wait){
 
 			// console.log("Asteroid", asteroidColorSet, c, asteroidColors);
 			if (!withMoon){
-				asteroids.push([x, y, z, angle, asteroidColors[asteroidColorSet][c][0], asteroidColors[asteroidColorSet][c][1], asteroidColors[asteroidColorSet][c][2], size]);
+				asteroids.push([x, y, z, angle, asteroidColors2[c][0], asteroidColors2[c][1], asteroidColors2[c][2], size]);
+				// asteroids.push([x, y, z, angle, asteroidColors[asteroidColorSet][c][0], asteroidColors[asteroidColorSet][c][1], asteroidColors[asteroidColorSet][c][2], size]);
 			}else{
 				asteroids.push([x, y, z, angle, Math.round(rng.unit()*200)+55, Math.round(rng.unit()*200)+55, Math.round(rng.unit()*200)+55, size]);
 			}
@@ -291,7 +362,7 @@ function generate(wait){
 	planetRotationDiff = rng.unit() * 0.03;
 	noise = new PerlinNoise(seed);
 	
-	planetType = Math.round(rng.unit()*4);
+	planetType = Math.round(rng.unit()*9);
 	
 	for(var x = 0; x < heightmap_width; x+=pixelSize){
 		for(var y = 0; y < heightmap_height; y+=pixelSize){
@@ -323,6 +394,16 @@ function generate(wait){
 				generatePurpleGasTypePlanet(n, texture_data, x, y, heightmap_width, pixelSize);
 			else if(planetType === ROCK_TYPE)
 				generateRockTypePlanet(n, texture_data, x, y, heightmap_width, pixelSize);
+			else if(planetType === LAVA_TYPE)
+				generateLavaTypePlanet(n, texture_data, x, y, heightmap_width, pixelSize);
+			else if(planetType === LAVA_2_TYPE)
+				generateLava2TypePlanet(n, texture_data, x, y, heightmap_width, pixelSize);
+			else if(planetType === PURPLE_WATER_TYPE)
+				generatePurpleWaterTypePlanet(n, texture_data, x, y, heightmap_width, pixelSize);
+			else if(planetType === FOREST_TYPE)
+				generateForestTypePlanet(n, texture_data, x, y, heightmap_width, pixelSize);
+			else if(planetType === DESERT_TYPE)
+				generateDesertTypePlanet(n, texture_data, x, y, heightmap_width, pixelSize);
 		}
 	}
 	
